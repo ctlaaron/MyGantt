@@ -663,15 +663,38 @@ function renderCalendar() {
 }
 
 // ---------- Save/Load local file ----------
+const pickerTypes = [{ description: "Gantt JSON", accept: { "application/json": [".json", ".gantt.json"] } }];
 let fileHandle = null;
+
+async function pickFileHandle(kind, opts) {
+  const pickers = {
+    open: window.showOpenFilePicker,
+    save: window.showSaveFilePicker,
+  };
+  const fn = pickers[kind];
+  if (!fn) return null;
+
+  const attempt = async (options) => {
+    if (kind === "open") {
+      const [h] = await fn(options);
+      return h;
+    }
+    return await fn(options);
+  };
+
+  try {
+    return await attempt({ startIn: "documents", ...opts });
+  } catch (err) {
+    if (err?.name === "AbortError") throw err; // user cancelled
+    return await attempt(opts); // fallback if startIn not supported
+  }
+}
 
 async function openFromFile() {
   // File System Access API (Chrome/Edge). If not available, fallback to input.
   if ("showOpenFilePicker" in window) {
-    const [h] = await window.showOpenFilePicker({
-      types: [{ description: "Gantt JSON", accept: { "application/json": [".json", ".gantt.json"] } }],
-      multiple: false,
-    });
+    const h = await pickFileHandle("open", { types: pickerTypes, multiple: false });
+    if (!h) throw new Error("File picker unavailable");
     const file = await h.getFile();
     const text = await file.text();
     const data = JSON.parse(text);
@@ -703,11 +726,12 @@ async function saveToFile({ saveAs = false } = {}) {
 
   if ("showSaveFilePicker" in window) {
     if (!fileHandle || saveAs) {
-      fileHandle = await window.showSaveFilePicker({
+      fileHandle = await pickFileHandle("save", {
         suggestedName: "project.gantt.json",
-        types: [{ description: "Gantt JSON", accept: { "application/json": [".gantt.json", ".json"] } }],
+        types: pickerTypes,
       });
     }
+    if (!fileHandle) throw new Error("File picker unavailable");
     const writable = await fileHandle.createWritable();
     await writable.write(data);
     await writable.close();
