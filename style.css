@@ -134,11 +134,14 @@ tr:hover td{ background:rgba(255,255,255,.03); }
 .modalOverlay.show{ display:flex; }
 .modal{
   width:min(920px, 100%);
+  max-height:calc(100vh - 32px);
   background:linear-gradient(180deg, rgba(18,26,42,.98), rgba(15,22,38,.98));
   border:1px solid rgba(255,255,255,.12);
   border-radius:20px;
   box-shadow:0 25px 60px rgba(0,0,0,.45);
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
 }
 .modalHeader{
   display:flex; justify-content:space-between; align-items:flex-start;
@@ -147,7 +150,10 @@ tr:hover td{ background:rgba(255,255,255,.03); }
 }
 .modalKicker{ color:var(--muted); font-size:12px; margin-bottom:4px; }
 .modalHeader h2{ margin:0; font-size:18px; }
-.modalBody{ padding:14px; }
+.modalBody{
+  padding:14px;
+  overflow:auto;
+}
 .modalFooter{
   display:flex; align-items:center; gap:10px;
   padding:14px;
