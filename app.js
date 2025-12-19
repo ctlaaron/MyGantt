@@ -11,6 +11,10 @@ const elRange = $("range");
 const btnAddTask = $("btnAddTask");
 const btnAddGroup = $("btnAddGroup");
 const btnJumpToday = $("btnJumpToday");
+const btnTogglePin = $("btnTogglePin");
+const btnToggleMenu = $("btnToggleMenu");
+const btnToggleMenuSide = $("btnToggleMenuSide");
+const btnRevealMenu = $("btnRevealMenu");
 
 const btnOpen = $("btnOpen");
 const btnSave = $("btnSave");
@@ -82,6 +86,12 @@ let state = {
   tasks: [],
 };
 
+let uiPrefs = {
+  pinned: true,
+  hidden: false,
+  side: "top",
+};
+
 function newTask({ type = "task", parentId = null } = {}) {
   const t = todayISO();
   return {
@@ -138,6 +148,35 @@ function loadAutosave() {
 
 function autosave() {
   localStorage.setItem("mini_gantt_autosave_v2", JSON.stringify(state));
+}
+
+function saveUiPrefs() {
+  localStorage.setItem("mini_gantt_ui", JSON.stringify(uiPrefs));
+}
+
+function loadUiPrefs() {
+  try {
+    const raw = localStorage.getItem("mini_gantt_ui");
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    uiPrefs = {
+      pinned: data?.pinned !== false,
+      hidden: Boolean(data?.hidden),
+      side: data?.side === "left" ? "left" : "top",
+    };
+  } catch {
+    // ignore
+  }
+}
+
+function syncMenuState() {
+  document.body.classList.toggle("menu-unpinned", !uiPrefs.pinned);
+  document.body.classList.toggle("menu-hidden", uiPrefs.hidden);
+  document.body.classList.toggle("menu-left", uiPrefs.side === "left");
+
+  btnTogglePin.textContent = uiPrefs.pinned ? "📌 Unpin menu" : "📌 Pin menu";
+  btnToggleMenu.textContent = uiPrefs.hidden ? "👀 Show menu" : "🙈 Hide menu";
+  btnToggleMenuSide.textContent = uiPrefs.side === "left" ? "↕️ Move menu to top" : "↔️ Move menu to left";
 }
 
 function sanitizeData(data) {
@@ -828,6 +867,31 @@ function applyModal() {
   closeModal();
 }
 
+// ---------- Menu controls ----------
+function togglePin() {
+  uiPrefs.pinned = !uiPrefs.pinned;
+  saveUiPrefs();
+  syncMenuState();
+}
+
+function toggleMenuVisibility() {
+  uiPrefs.hidden = !uiPrefs.hidden;
+  saveUiPrefs();
+  syncMenuState();
+}
+
+function toggleMenuSide() {
+  uiPrefs.side = uiPrefs.side === "left" ? "top" : "left";
+  saveUiPrefs();
+  syncMenuState();
+}
+
+function revealMenu() {
+  uiPrefs.hidden = false;
+  saveUiPrefs();
+  syncMenuState();
+}
+
 // ---------- Render all ----------
 function renderAll() {
   // enforce deps before draw (so UI stays consistent)
@@ -851,6 +915,11 @@ btnJumpToday.addEventListener("click", () => {
   const idx = clamp(daysBetween(min, today), 0, 99999);
   elScroll.scrollLeft = Math.max(0, idx * dayW - 200);
 });
+
+btnTogglePin.addEventListener("click", togglePin);
+btnToggleMenu.addEventListener("click", toggleMenuVisibility);
+btnToggleMenuSide.addEventListener("click", toggleMenuSide);
+btnRevealMenu.addEventListener("click", revealMenu);
 
 btnOpen.addEventListener("click", async () => {
   try { await openFromFile(); } catch (e) { alert("Open cancelled or failed."); }
@@ -895,5 +964,7 @@ calNext.addEventListener("click", () => {
 });
 
 // ---------- Boot ----------
+loadUiPrefs();
+syncMenuState();
 if (!loadAutosave()) seed();
 renderAll();
