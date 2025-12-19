@@ -109,22 +109,14 @@ body{
   margin-left:20px;
 }
 
-.menu-unpinned .header{
-  position:relative;
-  top:auto;
-}
-
 .menu-hidden .header{
-  transform:translateY(-140%);
-  opacity:0;
-  pointer-events:none;
-  transition:transform .2s ease, opacity .2s ease;
+  display:none;
 }
 .menu-left.menu-hidden .header{
   transform:translateX(-140%);
 }
-.menu-hidden.menu-left .modalOverlay{
-  padding-left:16px;
+.menu-hidden.menu-left main.grid{
+  padding-top:72px;
 }
 
 .grid{
@@ -200,8 +192,8 @@ tr:hover td{ background:rgba(255,255,255,.03); }
   position:fixed; inset:0;
   background:rgba(0,0,0,.55);
   display:none;
-  align-items:center; justify-content:center;
-  padding:80px 16px 16px;
+  align-items:flex-start; justify-content:center;
+  padding:calc(var(--headerH) + 32px) 16px 16px;
   z-index:40;
 }
 .modalOverlay.show{ display:flex; }

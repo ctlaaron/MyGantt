@@ -11,7 +11,6 @@ const elRange = $("range");
 const btnAddTask = $("btnAddTask");
 const btnAddGroup = $("btnAddGroup");
 const btnJumpToday = $("btnJumpToday");
-const btnTogglePin = $("btnTogglePin");
 const btnToggleMenu = $("btnToggleMenu");
 const btnToggleMenuSide = $("btnToggleMenuSide");
 const btnRevealMenu = $("btnRevealMenu");
@@ -87,7 +86,6 @@ let state = {
 };
 
 let uiPrefs = {
-  pinned: true,
   hidden: false,
   side: "top",
 };
@@ -160,7 +158,6 @@ function loadUiPrefs() {
     if (!raw) return;
     const data = JSON.parse(raw);
     uiPrefs = {
-      pinned: data?.pinned !== false,
       hidden: Boolean(data?.hidden),
       side: data?.side === "left" ? "left" : "top",
     };
@@ -170,11 +167,9 @@ function loadUiPrefs() {
 }
 
 function syncMenuState() {
-  document.body.classList.toggle("menu-unpinned", !uiPrefs.pinned);
   document.body.classList.toggle("menu-hidden", uiPrefs.hidden);
   document.body.classList.toggle("menu-left", uiPrefs.side === "left");
 
-  btnTogglePin.textContent = uiPrefs.pinned ? "📌 Unpin menu" : "📌 Pin menu";
   btnToggleMenu.textContent = uiPrefs.hidden ? "👀 Show menu" : "🙈 Hide menu";
   btnToggleMenuSide.textContent = uiPrefs.side === "left" ? "↕️ Move menu to top" : "↔️ Move menu to left";
 }
@@ -868,12 +863,6 @@ function applyModal() {
 }
 
 // ---------- Menu controls ----------
-function togglePin() {
-  uiPrefs.pinned = !uiPrefs.pinned;
-  saveUiPrefs();
-  syncMenuState();
-}
-
 function toggleMenuVisibility() {
   uiPrefs.hidden = !uiPrefs.hidden;
   saveUiPrefs();
@@ -916,7 +905,6 @@ btnJumpToday.addEventListener("click", () => {
   elScroll.scrollLeft = Math.max(0, idx * dayW - 200);
 });
 
-btnTogglePin.addEventListener("click", togglePin);
 btnToggleMenu.addEventListener("click", toggleMenuVisibility);
 btnToggleMenuSide.addEventListener("click", toggleMenuSide);
 btnRevealMenu.addEventListener("click", revealMenu);
